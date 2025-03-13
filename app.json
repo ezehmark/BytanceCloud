@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "myRNApp",
+    "slug": "myRNApp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./rnIcon.jpg",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./rnIcon.jpg",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ezehmark.myRNApp"
+    },
+    "android": {
+      "minSdkVersion": 21,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.ezehmark.myRNApp"
+    },
+    "androidNavigationBar": {
+      "backgroundColor": "transparent"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "4892c222-0afe-4241-adf6-9a1088267c55"
+      }
+    }
+  }
+}
