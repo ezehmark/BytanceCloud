@@ -1,17 +1,26 @@
-import MyApp1 from "./userDetails";
-import { StatusBar } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
+import MyApp from "./userDetails.tsx";
+import {useEffect} from "react";
+import { StatusBar } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import * as NavigationBar from "expo-navigation-bar";
 export default function App() {
-  return (
-    <>
-      {/* Ensures the status bar is visible */}
-      <StatusBar barStyle="dark-content" backgroundColor="#ecc37e" translucent={true} />
+	useEffect(() => {
+    const configureNavigationBar = async () => {
+      await NavigationBar.setBackgroundColorAsync('transparent');
+      await NavigationBar.setButtonStyleAsync('dark'); 
+    };
 
-      {/* SafeAreaView should cover the entire screen */}
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#ecc37e' }}>
-        <MyApp1 />
-      </SafeAreaView>
-    </>
-  );
+    configureNavigationBar();
+  }, []);
+
+  return (<>
+	  <StatusBar barStyle="dark-content"
+	  backgroundColor={"#2e4a5f"}
+	  translucent={true}/>
+
+	  <SafeAreaView style ={{flex:1,backgroundColor:"#2e4a5f"}}>
+	  <MyApp />
+	  </SafeAreaView>
+</>)
+
 }

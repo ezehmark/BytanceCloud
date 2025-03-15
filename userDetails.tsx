@@ -10,8 +10,8 @@ import {
   Alert,
   Platform,
   StyleSheet,
-  ScrollView
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import axios from "axios";
 import Animated, {
   useSharedValue,
@@ -20,29 +20,89 @@ import Animated, {
   withSequence,
   useAnimatedProps,
 } from "react-native-reanimated";
-import { NetworkInfo } from "react-native-network-info";
-import {LinearGradient} from 'expo-linear-gradient';
+import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import NetInfo from "@react-native-community/netinfo";
-const MyApp1: React.FC = () => {
+const MyApp: React.FC = () => {
   const [userDetails, setUserDetails] = useState("");
   const [loading, setLoading] = useState(false);
   const [visible, setVisible] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
-  const [isUserDetails,setIsUserDetails] = useState(false);        const userDetailsChecker=()=>{                                if(userDetails && userDetails.length >0){setIsUserDetails(true)}}
+  const [isUserDetails, setIsUserDetails] = useState(false);
+  const userDetailsChecker = () => {
+    if (userDetails && userDetails.length > 0) {
+      setIsUserDetails(true);
+    }
+  };
+
+  const [backendActive, setBackendActive] = useState(true);
+
+  const notifyBoxTop = useSharedValue(-40);
+  const notifyBoxOpacity = useSharedValue(1);
+  const notifyBoxAnim = useAnimatedStyle(() => {
+    return { top: notifyBoxTop.value, opacity: notifyBoxOpacity.value };
+  });
+
+  const [notifyMsg, setNotifyMsg] = useState("");
+
+
+    const dropDownChanger =()=>{                                   
+	    notifyBoxTop.value = withSequence(                                      withTiming(40, { duration: 1000 }),                                   withTiming(40, { duration: 2500 }),                                   withTiming(-40, { duration: 1000 }),                                );                                                                    notifyBoxOpacity.value = withSequence(                                  withTiming(1, { duration: 500 }),                                     withTiming(1, { duration: 2500 }),                                    withTiming(0, { duration: 1500 }),                                  );}
+
+	    useEffect(()=>{
+
+    const checkHealth = async () => {
+	
+      await axios
+        .get("/health")
+        .then((response) => {
+          if (response.status === 200) {
+            
+              setBackendActive(true);
+              setNotifyMsg("Backend is Deployed and Awake!");
+            
+          } else {
+            setBackendActive(false);
+          }
+        })
+        .catch((error) => {
+          setBackendActive(true);
+          setNotifyMsg(`There is backend failure: ${error}`);
+          setTimeout(() => {
+            setBackendActive(false);
+          }, 4500);
+        })
+        .finally(() => {
+	  dropDownChanger();
+          console.log("Backend Checks Done ✅");
+        });
+	
+    };
+
+    checkHealth();
+  }, []);
+
+  const [connected, setConnected] = useState(false);
+
+  useEffect(() => {
+    const handleConnection = () => {
+      NetInfo.addEventListener((state) => {
+        setConnected(state.isConnected);
+      });
+    };
+    handleConnection();
+    setInterval(() => {
+      handleConnection();
+    }, 1000);
+  }, []);
 
   const [uploaded, setUploaded] = useState(false);
   const [input, setInput] = useState("");
   const emailRef = useRef();
   const [progress, setProgress] = useState(0);
-  const [isNetwork, setIsNetwork] = useState(true);
-
-
-
 
   const [borderCheck, setBorderCheck] = useState(false);
-
 
   const [people, setPeople] = useState([]);
   const [name, setName] = useState("");
@@ -50,43 +110,63 @@ const MyApp1: React.FC = () => {
   const [focused, setFocused] = useState(false);
 
   const myRight = useSharedValue(-100);
-  const appearAnim = useAnimatedStyle(() => {                       return { right: `${myRight.value}%` };                        });
+  const myHeight = useSharedValue(40);
+  const appearAnim = useAnimatedStyle(() => {
+    return { right: `${myRight.value}%`, height: myHeight.value };
+  });
   const myLeft = useSharedValue(-100);
-  const appearAnim1 = useAnimatedStyle(() => {                      return { left: `${myLeft.value}%` }});
+
+  const appearAnim1 = useAnimatedStyle(() => {
+    return { left: `${myLeft.value}%`, height: myHeight.value };
+  });
 
   useEffect(() => {
-	  setTimeout(()=>{
-    myLeft.value = -100;
+    setTimeout(() => {
+      myLeft.value = -100;
 
-    myRight.value = -100;
-    myLeft.value = withSequence(
-      withTiming(16, { duration: 1200 }),
-      withTiming(0, { duration: 400 }),
-      withTiming(10, { duration: 800})
-    );
+      myRight.value = -100;
+      myHeight.value = 40;
+      myLeft.value = withSequence(
+        withTiming(20, { duration: 1200 }),
+        withTiming(0, { duration: 400 }),
+        withTiming(10, { duration: 800 }),
+      );
 
-    myRight.value = withSequence(                                     withTiming(16, { duration: 1200 }),                             withTiming(0, { duration: 400 }),                               withTiming(10, { duration: 800})                              )},1000);
+      myRight.value = withSequence(
+        withTiming(20, { duration: 1200 }),
+        withTiming(0, { duration: 400 }),
+        withTiming(10, { duration: 800 }),
+      );
+
+      myHeight.value = withSequence(
+        withTiming(40, { duration: 1200 }),
+        withTiming(45, { duration: 50 }),
+        withTiming(40, { duration: 1150 }),
+      );
+    }, 1000);
   }, []);
 
-
-  useEffect(()=>{
-          if(userDetails && userDetails.length > 1){setIsUserDetails(true)}
-		  else{setIsUserDetails(false)}
-          },[userDetails]);
+  useEffect(() => {
+    if (userDetails && userDetails.length > 1) {
+      setIsUserDetails(true);
+    } else {
+      setIsUserDetails(false);
+    }
+  }, [userDetails]);
 
   const handleFetch = async () => {
     setLoading(true);
     setFetch(true);
 
     await axios
-      .get(`http://192.168.0.200:3500/api/userDetails/${name}?`)
+      .get(`https://mybackend-oftz.onrender.com/api/userDetails/${name}?`)
       .then((response) => {
         console.log(response.data); // Debugging log
         // Adjust based on actual response data structure
         setPeople(response.data);
         setUserDetails(
-          `${response.data.name} is now loaded from the best backend. He is ${response.data.age} years old.`);
-        
+          `${response.data.name} is now loaded from the best backend. He is ${response.data.age} years old.`,
+        );
       })
       .catch((error) => {
         if (error.response && error.response.status === 404) {
@@ -101,8 +181,6 @@ const MyApp1: React.FC = () => {
           setFetch(false);
         }, 2000);
         setVisible(false);
-	
-	
       });
   };
 
@@ -110,14 +188,9 @@ const MyApp1: React.FC = () => {
     setLoading(true);
     setUpload(true);
 
-    if (!isNetwork) {
-      window.alert(`Dear ${name}, please ensure your internet is on`);
-      setLoading(false);
-      return;
-    }
     await axios
       .post(
-        "http://192.168.0.200:3500/api/userDetails",
+        "https://mybackend-oftz.onrender.com/api/userDetails",
         {
           newPeople: [
             { name: "mummy", age: "60" },
@@ -139,96 +212,202 @@ const MyApp1: React.FC = () => {
           setUpload(false);
         }, 2000);
         setVisible(true);
-	userDetailsChecker();
+        userDetailsChecker();
         setUploaded(true);
       });
   };
-  const email = ["ezehmaker@gmail.com","simplebiggly@gmail.com","powerdonew@gmail.com","younggreat303@gmail.com","ezehmark001@gmail.com"];
+  const email = [
+    "ezehmaker@gmail.com",
+    "simplebiggly@gmail.com",
+    "powerdonew@gmail.com",
+    "younggreat303@gmail.com",
+    "ezehmark001@gmail.com",
+  ];
 
-  const[mailing,setMailing]=useState(false);
+  const [mailing, setMailing] = useState(false);
 
-  const[myEmail,setMyEmail]=useState("");
-  const[isEmail, setIsEmail] = useState(false);
-  const handleIsEmail =(txt)=>{
-	  if(txt.length >= 8 && txt.includes("@")){
-		  setMyEmail(txt);
-	  setIsEmail(true)}
-  }
-  const sendMail = async()=>{
-	  setMailing(true);
+  const [myEmail, setMyEmail] = useState("");
+  const [isEmail, setIsEmail] = useState(false);
+  const handleIsEmail = (txt) => {
+    if (txt.length >= 8 && txt.includes("@gmail.com")) {
+      setMyEmail(txt);
+      setIsEmail(true);
+    } else {
+      setIsEmail(false);
+    }
+  };
+  const sendMail = async () => {
+    setMailing(true);
 
-	  await Promise.all(
+    await Promise.all(
+      email.map(
+        async (user) =>
+          await axios
+            .post("https://mybackend-oftz.onrender.com/send-mail", {
+              recipient: isEmail ? myEmail : user,
+              subject: "Web and App Technology Simplified",
+              message: isEmail
+                ? `Dear ${myEmail.split("@")[0]},\nThe best tech hub is here! At BytanceTech, you get your web/app development done by experienced and professional developers. Reach out to us today for projects like static and dynamic websites, apps and web apps, Search Engine Optimizations(SEO), cybersecurity, productive and uptime robots to fast-track social media engagements, and many more in-demand services\nYou have this rare privilege to discuss with the team-lead:\nMessage Engnr. Mark Ezeh on WhatsApp⤵️\n	 https://wa.me/2349036202766`
+                : `Dear ${user.split("@")[0]},\nThe best tech hub is here! At BytanceTech, you get your web/app development done by experienced and professional developers. Reach out to us today for projects like static and dynamic websites, apps and web apps, Search Engine Optimizations(SEO), cybersecurity, productive and uptime robots to fast-track social media engagements, and many more in-demand services\nYou have this rare privilege to discuss with the team-lead:\nMessage Engnr. Mark Ezeh on WhatsApp⤵️\n		 https://wa.me/2349036202766`,
+            })
 
-	  await axios
-	  .post("http://192.168.0.200:3500/send-mail",
-		{recipient:isEmail?myEmail:user,subject:"Testing my Automatic Email",message:isEmail?`Dear ${myEmail.split("@")[0]},\nHurray! Please rejoice today, because this email is coming from my backend`:`Dear ${user.split("@")[0]},\nHurray! Please rejoice today, because this email is coming from my backend`})
-		
-			.then((response)=>setUserDetails(response.data.message))
-			.catch((error)=>setUserDetails(error.response.data.message))
-			.finally(()=>setMailing(false))
-	  )
-  }
-
+            .then((response) => setUserDetails(response.data.message))
+            .catch((error) => setUserDetails(error.response.data.message))
+            .finally(() => setMailing(false)),
+      ),
+    );
+  };
+  const[focused2,setFocused2]=useState(false);
 
   const [isfetch, setFetch] = useState(false);
   const [upload, setUpload] = useState(false);
 
   const [typing, setTyping] = useState("User typing.");
   let typingTime = useRef(null);
-let dotsInterval = useRef(null);
+  let dotsInterval = useRef(null);
   const typeSetter = () => {
-	  setBorderCheck(true);
-	  let dots = ["User typing.", "User typing..","User typing..."];
-	  let index = 0;
-	  if(typingTime.current){
-	  clearTimeout(typingTime.current)}
+    setBorderCheck(true);
+    let dots = ["User typing.", "User typing..", "User typing..."];
+    let index = 0;
+    if (typingTime.current) {
+      clearTimeout(typingTime.current);
+    }
 
+    dotsInterval.current = setInterval(() => {
+      setTyping(dots[index]);
+      index = (index + 1) % dots.length;
+    }, 800);
 
-
-	 
-	
-		 dotsInterval.current=setInterval(()=>{
-		  setTyping(dots[index]);
-		  index = (index + 1) % dots.length},800);
-	
-		
     typingTime.current = setTimeout(() => {
-	    clearInterval(dotsInterval);
+      clearInterval(dotsInterval);
       setBorderCheck(false);
     }, 2500);
-  }
-  
+  };
+
   return (
-	
+	  <KeyboardAwareScrollView
+	  extraScrollHeight={50}
+	  enableOnAndroid={true}>
     <LinearGradient
-    colors={["#ecc37e","#2e4a5f","#2e4a5f"]}
-    start={{x:0,y:0}}
-    end={{x:1,y:1}}
-    style={styles.outer}>
-
-    <Text                                                        style={{                                                     top: 5,                                                    borderRadius: 10,                                           padding: 4,                                                borderColor: "#00ff00",                                    borderWidth:1,
-	    backgroundColor:"rgba(0,0,0,1)",
-            opacity:borderCheck?1:0,
+      colors={["#2e4a5f","#2e4a5f","#00d4d4", "#2e4a5f", "#2e4a5f"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.outer}
+    >
+      <Animated.View
+        style={[
+          {
+            height: 30,
             position: "absolute",
-            right: "10%",
-            color: "#00ff00",
-            width:95,
-            textAlign:"left",
-            fontSize:12,                                             }}
-        >
-          {typing}
+            borderRadius: 10,
+	    width:200,
+	    top:-40,
+            backgroundColor: "#feb819",
+            opacity: backendActive ? 1 : 0,
+            alignItems: "center",
+            zIndex: 160,
+            justifyContent: "center",
+          },
+          backendActive && notifyBoxAnim,
+        ]}
+      >
+        <Text style={{ color: "#2e4a5f", position: "absolute", fontSize: 12 }}>
+          {notifyMsg}
         </Text>
+      </Animated.View>
 
-    <TouchableOpacity onPress={()=>sendMail()} style={{bottom:105,position:"absolute",backgroundColor:"black",borderRadius:5,padding:10,zIndex:60,width:80,alignItems:"center",justifyContent:"center"}}>
-    <Text style={{fontSize:12,color:"red"}}>{mailing?"Sending...":"Send Mail"}</Text></TouchableOpacity>
-      <View style={[{borderTopWidth:1,borderBottomWidth:0.5,borderBottomColor:"#ecc37e",overflow:"hidden",borderColor:focused?"#00ff00":"red"},styles.container]}>
+      <View
+        style={{
+          position: "absolute",
+          top: 8,
+          left: 20,
+	  backgroundColor:"#2e4a5f",
+	  borderRadius:4,
 
+
+          flex: 1,
+          justifyContent: "space-between",
+	  padding:4,
+          alignItems: "center",
+          flexDirection: "row",
+          gap: 4,
+        }}
+      >
+        {" "}
+        <View
+          style={{
+            height: 15,
+            width: 15,
+            borderRadius: 7.5,
+            backgroundColor: connected ? "#00ff00" : "#ccc",
+          }}
+        />{" "}
+        <Text
+          style={{ fontSize: 10, color: connected ? "#00ff00" : "#ccc" }}
+        >
+          {connected ? "Active Data" : "Offline"}
+        </Text>{" "}
+      </View>
+      <Text
+        style={{
+          top: 5,
+          borderRadius: 12,
+          padding: 4,
+	  paddingLeft:10,
+          borderColor: "#00ff00",
+          borderWidth: 0,
+          backgroundColor: "#feb819",
+          opacity: borderCheck ? 1 : 0,
+          position: "absolute",
+          right: "10%",
+          color: "#2e4a5f",
+          width: 95,
+          textAlign: "left",
+          fontSize: 12,
+        }}
+      >
+        {typing}
+      </Text>
+
+      <TouchableOpacity
+        onPress={() => {
+          sendMail();
+          handleConnection();
+        }}
+        style={{
+          bottom: 116,
+          position: "absolute",
+          backgroundColor: "black",
+          borderRadius: 5,
+          padding: 10,
+          zIndex: 60,
+          width: 80,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Text style={{ fontSize: 12, color: "red" }}>
+          {mailing ? "Sending..." : "Send Mail"}
+        </Text>
+      </TouchableOpacity>
+      <View
+        style={[
+          {
+		  borderWidth:0.5,
+            borderTopWidth: 1,
+            borderColor: "#00d4d4",
+            overflow: "hidden",
+            borderTopColor: focused || focused2? "#00ff00" : "#00d4d4",
+          },
+          styles.container,
+        ]}
+      >
         <Animated.View
           style={[
             {
-              backgroundColor: "#ff7b00",
+              backgroundColor: "#00d4d4",
               left: "10%",
-              top: 350,
+              top: 346,
               color: "#2e4a5f",
               display: "flex",
               alignItems: "center",
@@ -237,10 +416,10 @@ let dotsInterval = useRef(null);
               padding: 10,
               width: 110,
               fontSize: 14,
-	      zIndex:55,
+              zIndex: 55,
               borderRadius: 10,
             },
-            appearAnim1
+            appearAnim1,
           ]}
         >
           {" "}
@@ -253,25 +432,48 @@ let dotsInterval = useRef(null);
               justifyContent: "center",
               flex: 1,
             }}
-          ><Text style={{color:"#e0e2d7"}}>
-            {isfetch ? "Loading.." : "Fetch Data"}</Text>
+          >
+            <Text style={{ color: "black" }}>
+              {isfetch ? "Loading..." : "Fetch Data"}
+            </Text>
           </TouchableOpacity>{" "}
         </Animated.View>
 
-        {loading ? (<View style={{zIndex:150,height:"1200%",width:"120%",alignItems:"center",backgroundColor:"rgba(46,74,95,0.4)",justifyContent:"center",position:"absolute"}} intensity={5} tint={"dark"}>
-        <ActivityIndicator
-	style={{padding:20,backgroundColor:"black",borderRadius:10,alignSelf:"center",position:"absolute"}}
-	size={"large"}
-	color={"blue"}/>
-	</View>
-		) : (
-          <View style={[{opacity:isUserDetails?1:0},styles.userDetails]}>                                
+        {loading ? (
+          <View
+            style={{
+              zIndex: 150,
+              height: "1200%",
+              width: "120%",
+              alignItems: "center",
+              backgroundColor: "rgba(46,74,95,0.4)",
+              justifyContent: "center",
+              position: "absolute",
+            }}
+            intensity={5}
+            tint={"dark"}
+          >
+            <ActivityIndicator
+              style={{
+                padding: 20,
+                backgroundColor: "black",
+                borderRadius: 10,
+                alignSelf: "center",
+                position: "absolute",
+              }}
+              size={"large"}
+              color={"blue"}
+            />
+          </View>
+        ) : (
+          <View
+            style={[{ opacity: isUserDetails ? 1 : 0 }, styles.userDetails]}
+          >
             <Text
               style={{
                 color: "black",
                 margin: 10,
-		opacity: 1,
-
+                opacity: 1,
               }}
             >
               {" "}
@@ -290,61 +492,122 @@ let dotsInterval = useRef(null);
               flex: 1,
             }}
           >
-            <Text style={{ color:"#ccc",fontSize: 14, padding: 10 }}>
+            <Text style={{ color: "#ccc", fontSize: 14, padding: 10 }}>
               {upload ? "Uploading.." : "Upload"}
             </Text>
           </TouchableOpacity>
         </Animated.View>
-        {visible && (<>
-		<LinearGradient                                            colors={["rgba(46,74,95,1)","rgba(46,74,95,1)","rgba(46,74,95,0.8)","transparent","transparent","transparent","transparent","transparent","rgba(46,74,95,0.8)","rgba(46,74,95,1)","rgba(46,74,95,1)"]}     
+        {visible && (
+          <>
+            <LinearGradient
+              colors={[
+                "rgba(46,74,95,1)",
+                "rgba(46,74,95,1)",
+                "rgba(46,74,95,0.8)",
+                "transparent",
+                "transparent",
+                "transparent",
+                "transparent",
+                "transparent",
+                "rgba(46,74,95,0.8)",
+                "rgba(46,74,95,1)",
+                "rgba(46,74,95,1)",
+              ]}
+              start={{ x: 1, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={{
+                bottom: 300,
+                borderRadius: 20,
+                zIndex: 150,
+                position: "absolute",
+                height: 50,
+                width: 270,
+              }}
+              pointerEvents={"none"}
+            >
+              <View
+                style={{ backgroundColor: "transparent", position: "absolute" }}
+              />
+            </LinearGradient>
 
-		start={{x:1,y:0}}                                          end={{x:0,y:1}}                                            style={{                                                     bottom: 300,                                               borderRadius: 20,                                          zIndex: 150,                                               position: "absolute",                                      height: 50,                                                width: 270                                             }}
-		pointerEvents={"none"}><View style={{backgroundColor:"transparent",position:"absolute"}}
-		/>
-		</LinearGradient>
-
-
-		<View  style={{
-              bottom: 300,
-              borderRadius: 20,
-              zIndex: 100,
-              position: "absolute",
-              height: 50,
-              width: 250,
-            }} >
-            <FlatList
-              horizontal={true}
-              showsHorizontalScrollIndicator={true}
-              data={people}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-		onPress={()=>setName(item.name)}
-                  style={{
-                    height: 40,
-                    width: 100,
-                    color: "blue",
-                    borderRadius: 15,
-                    justifyContent: "center",
-                    margin: 5,
-                    backgroundColor: "#4b9490",
-                    alignItems: "center",
-                  }}
-                >
-                  <Text style={{ color: "#black" }}>{item.name}</Text>
-                  <Text style={{ color: "#ccc", fontSize: 10 }}>
-                    Age: {item.age}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-	  </>
+            <View
+              style={{
+                bottom: 300,
+                borderRadius: 20,
+                zIndex: 100,
+                position: "absolute",
+                height: 50,
+                width: 250,
+              }}
+            >
+              <FlatList
+                horizontal={true}
+                showsHorizontalScrollIndicator={true}
+                data={people}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    onPress={() => setName(item.name)}
+                    style={{
+                      height: 40,
+                      width: 100,
+                      color: "blue",
+                      borderRadius: 15,
+                      justifyContent: "center",
+                      margin: 5,
+                      backgroundColor: "#4b9490",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text style={{ color: "#black" }}>{item.name}</Text>
+                    <Text style={{ color: "#ccc", fontSize: 10 }}>
+                      Age: {item.age}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          </>
         )}
 
-	<Text style={{position:"absolute",bottom:130,padding:8,borderRadius:5,fontSize:12,width:"80%",zIndex:50,borderWidth:0.5,borderColor:"#4b9490",textAlign:"center",color:"#4b9490"}}>This app enables you to fetch saved users from Mark's backend database. You can also press "Upload" to send new users to the DB. Happy using ✔️</Text>
+        <Text
+          style={{
+            position: "absolute",
+            bottom: 130,
+            padding: 8,
+            borderRadius: 5,
+            fontSize: 12,
+            width: "80%",
+            zIndex: 50,
+            borderWidth: 0.5,
+            borderColor: "#00d4d4",
+            textAlign: "center",
+            color: "#00d4d4",
+          }}
+        >
+          This app enables you to fetch saved users from Mark's backend
+          database. You can also press "Upload" to send new users to the DB.
+          Happy using ✔️
+        </Text>
 
-	<Text style={{position:"absolute",bottom:30,padding:8,borderRadius:5,fontSize:12,width:"80%",zIndex:50,borderWidth:0,borderColor:"#ea0707",textAlign:"center",color:"#ccc"}}>Clicking the button "Send Mail" will send email message to specific recipients ✔️</Text>
+        <Text
+          style={{
+            position: "absolute",
+            bottom: 45,
+            padding: 8,
+            borderRadius: 5,
+            fontSize: 12,
+            width: "80%",
+            zIndex: 50,
+            borderWidth: 0,
+            borderColor: "#ecc37e",
+            textAlign: "center",
+            color: "#ecc37e",
+          }}
+        >
+          Clicking the button "Send Mail" will send email message to specific
+          recipients ✔️
+        </Text>
 
         <Text style={styles.feedback}>{feedback}</Text>
 
@@ -353,29 +616,49 @@ let dotsInterval = useRef(null);
             styles.input,
             {
               borderColor: focused ? "#00ff00" : "#ecc37e",
-              backgroundColor: focused ? "rgba(215,230,249,0.3)" : "#2e4a5f",
+              backgroundColor: focused ? "rgba(215,230,249,0)" : "#2e4a5f",
               borderWidth: focused ? 0.4 : 0.5,
-              color: focused ? "#ccc" : "#ecc37e",
+              color: focused ? "#feb819" : "#ecc37e",
               textAlignVertical: "top",
               outlineWidth: 0,
             },
           ]}
-          returnKeyType="Next"
-          onFocus={() => setFocused(true)}
+          returnKeyType="Enter"
+          onFocus={() => {
+            setFocused(true);
+            handleConnection();
+          }}
           onBlur={() => setFocused(false)}
           placeholder={focused ? "Start typing..." : "Type Name"}
           multiline={true}
           numberOfLines={3}
-	  value={name}
+          value={name}
           onSubmitEditing={() => emailRef.current.focus()}
           onChangeText={(text) => {
-            typeSetter();setName(text);
+            typeSetter();
+            setName(text);
           }}
         />
-        <TextInput style={styles.input2} 
-	onChangeText={(txt)=>{handleIsEmail(txt)}}returnKeyType="Done" ref={emailRef} />
+        <TextInput
+          style={[styles.input2,{backgroundColor:focused2?"transparent":"#2e4a5f",color:focused2?"#feb819":"#ecc37e",borderColor:focused2?"#00ff00":"#feb819"}]}
+	  placeholder={focused2? "eg. you@gmail.com":"Enter email"}
+          onChangeText={(txt) => {
+		  typeSetter();
+            handleIsEmail(txt);
+
+          }}
+	  onFocus={()=>setFocused2(true)}
+	  onBlur={()=>setFocused2(false)}
+	  multiline={true}
+
+
+          returnKeyType="Done"
+          ref={emailRef}
+        />
       </View>
     </LinearGradient>
+    
+    </KeyboardAwareScrollView>
   );
 };
 
@@ -402,7 +685,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
     backgroundColor: "#2e4a5f",
     borderWidth: 0.5,
-    outlineWidth:0,
+    outlineWidth: 0,
     borderColor: "#ecc37e",
   },
   outer: {
@@ -419,20 +702,19 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     justifyContent: "center",
     alignItems: "center",
-    position: "relative",
+    position: "absolute",
     borderRadius: 20,
-    borderTopRightRadius:40,
-    borderTopWidth:1,
+    top:40,
     elevation: 0,
     shadowRadius: 5,
 
-    shadowOffset: { width: 0, height: 4},
+    shadowOffset: { width: 0, height: 4 },
     shadowColor: "rgba(0,0,0,0.2)",
   },
   userDetails: {
     top: 150,
     position: "absolute",
-   width:"85%", 
+    width: "85%",
     borderRadius: 15,
     borderWidth: 0.5,
     borderColor: "black",
@@ -456,11 +738,11 @@ const styles = StyleSheet.create({
     right: "10%",
     position: "absolute",
     alignSelf: "center",
-    top: 350,
+    top: 346,
     fontWeight: "bold",
     width: 110,
     height: 40,
-    zIndex:60,
+    zIndex: 60,
 
     padding: 10,
     borderRadius: 10,
@@ -470,4 +752,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MyApp1;
+export default MyApp;
