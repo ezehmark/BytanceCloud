@@ -367,7 +367,7 @@ useEffect(()=>{
           handleConnection();
         }}
         style={{
-          bottom: 116,
+          bottom: 80,
           position: "absolute",
           backgroundColor: "black",
           borderRadius: 5,
