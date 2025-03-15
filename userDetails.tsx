@@ -50,47 +50,39 @@ const MyApp: React.FC = () => {
     const dropDownChanger =()=>{                                   
 	    notifyBoxTop.value = withSequence(                                      withTiming(40, { duration: 1000 }),                                   withTiming(40, { duration: 2500 }),                                   withTiming(-40, { duration: 1000 }),                                );                                                                    notifyBoxOpacity.value = withSequence(                                  withTiming(1, { duration: 500 }),                                     withTiming(1, { duration: 2500 }),                                    withTiming(0, { duration: 1500 }),                                  );}
 
-	    useEffect(()=>{
 
-    const checkHealth = async () => {
-	
-      await axios
-        .get("/health")
-        .then((response) => {
-          if (response.status === 200) {
-            
-              setBackendActive(true);
-              setNotifyMsg("Backend is Deployed and Awake!");
-            
-          } else {
-            setBackendActive(false);
-          }
-        })
-        .catch((error) => {
-          setBackendActive(true);
-          setNotifyMsg(`There is backend failure: ${error}`);
-          setTimeout(() => {
-            setBackendActive(false);
-          }, 4500);
-        })
-        .finally(() => {
-	  dropDownChanger();
-          console.log("Backend Checks Done ✅");
-        });
-	
-    };
+  const checkHealth = async () => {
+    try {
+      const response = await axios.get("/health");
 
-    checkHealth();
-  }, []);
-
+      if (response.status === 200) {
+        setBackendActive(true);
+        setNotifyMsg("Backend is Deployed and Awake!");
+      } else {
+        setBackendActive(false);
+      }
+    } catch (error) {
+      setBackendActive(true);
+      setNotifyMsg(`There is a backend failure: ${error.message}`);
+      setTimeout(() => {
+        setBackendActive(false);
+      }, 4500);
+    } finally {
+      dropDownChanger();
+      console.log("Backend Checks Done ✅");
+    }
+  };
+useEffect(()=>{
+  checkHealth();
+}, []);
   const [connected, setConnected] = useState(false);
 
-  useEffect(() => {
-    const handleConnection = () => {
+  const handleConnection = () => {
       NetInfo.addEventListener((state) => {
         setConnected(state.isConnected);
       });
     };
+  useEffect(() => {
     handleConnection();
     setInterval(() => {
       handleConnection();
@@ -140,7 +132,7 @@ const MyApp: React.FC = () => {
 
       myHeight.value = withSequence(
         withTiming(40, { duration: 1200 }),
-        withTiming(45, { duration: 50 }),
+        withTiming(40, { duration: 50 }),
         withTiming(40, { duration: 1150 }),
       );
     }, 1000);
@@ -380,7 +372,7 @@ const MyApp: React.FC = () => {
           backgroundColor: "black",
           borderRadius: 5,
           padding: 10,
-          zIndex: 60,
+          zIndex: 170,
           width: 80,
           alignItems: "center",
           justifyContent: "center",
