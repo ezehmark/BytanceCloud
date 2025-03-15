@@ -24,6 +24,11 @@ jobs:
       - name: Grant execute permission to Gradle
         run: chmod +x android/gradlew
 
+      - name: Bundle JavaScript
+        run: |
+          mkdir -p android/app/src/main/assets
+          npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/
+
       - name: Build Debug APK
         run: |
           cd android
@@ -35,7 +40,7 @@ jobs:
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4 # Updated to v4
         with:
-          name: app-debug.apk
+          name: app-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Remove Actions Cache (Optional)
