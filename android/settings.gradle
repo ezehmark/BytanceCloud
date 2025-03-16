@@ -4,16 +4,18 @@ pluginManagement {
         google()
         mavenCentral()
         maven { url 'https://jitpack.io' }
-        maven { url 'https://maven.google.com' }  // Ensure Google's repository is available
+        maven { url 'https://maven.google.com' }
+    }
+
+    plugins {
+        id("com.facebook.react.settings") version "18.0.0"
     }
 }
 
-// ✅ Move plugins {} block here, right after pluginManagement {}
 plugins {
-    id("com.facebook.react.settings")
+    id("com.facebook.react.settings") version "18.0.0"
 }
 
-// ✅ Now define dependency resolution settings
 dependencyResolutionManagement {
     repositories {
         google()
