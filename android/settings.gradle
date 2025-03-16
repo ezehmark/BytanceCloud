@@ -8,6 +8,12 @@ pluginManagement {
     }
 }
 
+// ✅ Move plugins {} block here, right after pluginManagement {}
+plugins {
+    id("com.facebook.react.settings")
+}
+
+// ✅ Now define dependency resolution settings
 dependencyResolutionManagement {
     repositories {
         google()
@@ -21,11 +27,6 @@ dependencyResolutionManagement {
             from(files(new File(resolveNodePackage('react-native'), "../gradle/libs.versions.toml")))
         }
     }
-}
-
-// Move plugins {} here, before other statements
-plugins {
-    id("com.facebook.react.settings")
 }
 
 rootProject.name = 'myRNApp'
