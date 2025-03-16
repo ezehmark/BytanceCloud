@@ -1,53 +1,35 @@
-name: Android Release Build
+name: Android Debug Build
 
-on: [push]
-
-jobs:
-  build:
+on: [push]                                                                                                                                  jobs:                                                                   build:
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
+    steps:                                                                  - name: Checkout Code
+        uses: actions/checkout@v3                                     
+      - name: Set up Node.js                                                  uses: actions/setup-node@v3
+        with:                                                                   node-version: '18'                                          
       - name: Install Dependencies
-        run: |
-          npm install
-          npx expo install expo-blur expo-linear-gradient
+        run: |                                                                  npm install                                                           npx expo install expo-blur expo-linear-gradient
 
       - name: Set up Java & Android SDK
         uses: android-actions/setup-android@v3
-
-      - name: Grant execute permission to Gradle
-        run: chmod +x android/gradlew
-
-      - name: Ensure assets directory exists
-        run: mkdir -p android/app/src/main/assets
-
-      - name: Bundle JavaScript
-        run: |
+                                                                            - name: Grant execute permission to Gradle                              run: chmod +x android/gradlew
+                                                                            - name: Ensure assets directory exists
+        run: mkdir -p android/app/src/main/assets                                                                                                 - name: Bundle JavaScript                                               run: |
           npx react-native bundle --platform android --dev false --entry-file index.ts --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/
-      - name: Clear Gradle Cache
-        run: rm -rf ~/.gradle/caches
 
-      - name: Build Release APK
+      - name: Build Debug APK
         run: |
           cd android
-          ./gradlew assembleRelease --stacktrace --info
+          ./gradlew assembleDebug --stacktrace --info
 
       - name: List APK files
         run: ls -R android/app/build/outputs/apk/
 
-      - name: Upload Release APK
+      - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
-          path: android/app/build/outputs/apk/release/app-release.apk
+          name: app-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Remove Actions Cache (Optional)
         run: rm -rf ~/.github-actions
