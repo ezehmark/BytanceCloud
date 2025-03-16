@@ -8,10 +8,6 @@ pluginManagement {
     }
 }
 
-plugins {
-    id("com.facebook.react") // ✅ Removed version
-}
-
 dependencyResolutionManagement {
     repositories {
         google()
@@ -29,7 +25,9 @@ dependencyResolutionManagement {
 
 rootProject.name = 'myRNApp'
 include ':app'
-includeBuild(resolveNodePackage('@react-native/gradle-plugin').getParentFile()) // ✅ Ensures React Native Gradle plugin is included
+
+// ✅ Ensure the React Native plugin is included correctly
+includeBuild(resolveNodePackage('@react-native/gradle-plugin').getParentFile())
 
 // Function to resolve Node.js packages
 def resolveNodePackage(packageName) {
