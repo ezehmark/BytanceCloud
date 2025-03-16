@@ -23,16 +23,14 @@ dependencyResolutionManagement {
     }
 }
 
-// Move plugins {} after pluginManagement {} and dependencyResolutionManagement {}
-rootProject.name = 'myRNApp'
-
-include ':app'
-includeBuild(resolveNodePackage('@react-native/gradle-plugin').getParentFile())
-
-// Define plugins after setting up repositories and dependency resolution
+// Move plugins {} here, before other statements
 plugins {
     id("com.facebook.react.settings")
 }
+
+rootProject.name = 'myRNApp'
+include ':app'
+includeBuild(resolveNodePackage('@react-native/gradle-plugin').getParentFile())
 
 // Function to resolve Node.js packages
 def resolveNodePackage(packageName) {
