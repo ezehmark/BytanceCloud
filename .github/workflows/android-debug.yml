@@ -18,24 +18,41 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install
-          npx expo install expo-blur expo-linear-gradient
+          npx expo install expo-blur expo-linear-gradient                                            
 
       - name: Set up Java & Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Grant execute permission to Gradle
+      - name: Set Up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Gradle Files
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Grant Execute Permission for Gradlew
         run: chmod +x android/gradlew
 
-      - name: Ensure assets directory exists
+      - name: Ensure Assets Directory Exists
         run: mkdir -p android/app/src/main/assets
 
       - name: Bundle JavaScript
         run: |
           npx react-native bundle --platform android --dev false --entry-file index.ts --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/
 
-      - name: Build Debug APK
+      - name: Clean and Build Debug APK
         run: |
           cd android
+          ./gradlew clean
           ./gradlew assembleDebug --stacktrace --info
 
       - name: List APK files
