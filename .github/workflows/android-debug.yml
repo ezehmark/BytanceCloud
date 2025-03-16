@@ -23,14 +23,16 @@ jobs:
       - name: Set up Java & Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Set Up JDK (Avoid Foojay Issues)
+      - name: Set Up JDK (Fix JAVA_HOME Issue)
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'  # Alternative: 'zulu' or 'corretto'
           java-version: '17'
 
-      - name: Set JAVA_HOME
-        run: echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk" >> $GITHUB_ENV
+      - name: Verify Java Installation
+        run: |
+          echo "JAVA_HOME is set to: $JAVA_HOME"
+          java -version
 
       - name: Cache Gradle Files
         uses: actions/cache@v3
