@@ -4,11 +4,11 @@
     "slug": "myRNApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./rnIcon.jpg",
+    "icon": "./assets/newIcon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./rnIcon.jpg",
+      "image": "./assets/newIcon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
