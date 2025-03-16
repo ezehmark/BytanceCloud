@@ -1,20 +1,21 @@
-// ✅ pluginManagement MUST be the first block
 pluginManagement {
     repositories {
         gradlePluginPortal()
         google()
         mavenCentral()
         maven { url 'https://jitpack.io' }
+        maven { url 'https://maven.google.com' }  // Add Google's Maven repository
     }
 }
 
-// ✅ Ensure dependencyResolutionManagement comes after pluginManagement
 dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
         maven { url 'https://jitpack.io' }
+        maven { url 'https://maven.google.com' }  // Ensure dependencies can be resolved
     }
+
     versionCatalogs {
         reactAndroidLibs {
             from(files(new File(resolveNodePackage('react-native'), "../gradle/libs.versions.toml")))
@@ -22,26 +23,18 @@ dependencyResolutionManagement {
     }
 }
 
-// ✅ Add repositories inside buildscript to fix missing dependencies
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath("com.android.tools.build:gradle:8.2.0")
-        classpath("com.facebook.react:react-native-gradle-plugin")
-    }
+plugins {
+    id("com.facebook.react.settings")
 }
 
-// ✅ Function to resolve Node.js packages
+// Function to resolve Node.js packages
 def resolveNodePackage(packageName) {
     def result = ["node", "--print", "require.resolve('${packageName}/package.json')"].execute()
     result.waitFor()
     return new File(result.text.trim())
 }
 
-// ✅ Apply React Native settings correctly
+// Apply React Native settings
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
     if (System.getenv('EXPO_USE_COMMUNITY_AUTOLINKING') == '1') {
         ex.autolinkLibrariesFromCommand()
@@ -60,11 +53,11 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
     }
 }
 
-// ✅ Apply Expo modules and autolinking
+// Apply Expo modules and autolinking
 apply from: new File(resolveNodePackage('expo'), "../scripts/autolinking.gradle")
 useExpoModules()
 
-// ✅ Root project name and module inclusion
 rootProject.name = 'myRNApp'
+
 include ':app'
 includeBuild(resolveNodePackage('@react-native/gradle-plugin').getParentFile())
