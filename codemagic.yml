@@ -1,0 +1,72 @@
+name: Android Debug Build
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+                                                                                                           - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'                                                                         
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm install @react-native/gradle-plugin # Install the React Native Gradle plugin
+          npx expo install expo-blur expo-linear-gradient
+
+      - name: Set up Java & Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set Up JDK (Fix JAVA_HOME Issue)
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'  # Alternative: 'zulu' or 'corretto'
+          java-version: '17'
+
+      - name: Verify Java Installation
+        run: |
+          echo "JAVA_HOME is set to: $JAVA_HOME"                                                               java -version
+
+      - name: Cache Gradle Files
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x android/gradlew
+
+      - name: Ensure Assets Directory Exists
+        run: mkdir -p android/app/src/main/assets
+
+      - name: Bundle JavaScript
+        run: |
+          npx react-native bundle --platform android --dev false --entry-file index.ts \
+          --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/
+
+      - name: Clean and Build Debug APK
+        run: |
+          cd android
+          ./gradlew clean
+          ./gradlew assembleDebug --stacktrace --info
+
+      - name: List APK files
+        run: ls -R android/app/build/outputs/apk/
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Remove Actions Cache (Optional)
+        run: rm -rf ~/.github-actions
