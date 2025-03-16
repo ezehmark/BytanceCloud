@@ -18,16 +18,19 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install
-          npx expo install expo-blur expo-linear-gradient                                            
+          npx expo install expo-blur expo-linear-gradient
 
       - name: Set up Java & Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Set Up JDK
+      - name: Set Up JDK (Avoid Foojay Issues)
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
+          distribution: 'temurin'  # Alternative: 'zulu' or 'corretto'
           java-version: '17'
+
+      - name: Set JAVA_HOME
+        run: echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk" >> $GITHUB_ENV
 
       - name: Cache Gradle Files
         uses: actions/cache@v3
@@ -47,7 +50,8 @@ jobs:
 
       - name: Bundle JavaScript
         run: |
-          npx react-native bundle --platform android --dev false --entry-file index.ts --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/
+          npx react-native bundle --platform android --dev false --entry-file index.ts \
+          --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/
 
       - name: Clean and Build Debug APK
         run: |
