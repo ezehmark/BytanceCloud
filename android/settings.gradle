@@ -6,14 +6,10 @@ pluginManagement {
         maven { url 'https://jitpack.io' }
         maven { url 'https://maven.google.com' }
     }
-
-    plugins {
-        id("com.facebook.react.settings") version "0.76.7"
-    }
 }
 
 plugins {
-    id("com.facebook.react.settings") version "0.76.7"
+    id("com.facebook.react.settings") // ✅ Removed version
 }
 
 dependencyResolutionManagement {
