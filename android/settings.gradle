@@ -20,8 +20,9 @@ rootProject.name = 'myRNApp'
 include ':app'
 includeBuild(resolveNodePackage('@react-native/gradle-plugin').getParentFile())
 
+// Move this to the correct position
 plugins {
-    id("com.facebook.react.settings")  // Ensure this is after pluginManagement
+    id("com.facebook.react.settings") 
 }
 
 // Function to safely resolve Node.js packages
