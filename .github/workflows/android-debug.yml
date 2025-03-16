@@ -18,6 +18,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install
+          npm install @react-native/gradle-plugin # Install the React Native Gradle plugin
           npx expo install expo-blur expo-linear-gradient
 
       - name: Set up Java & Android SDK
