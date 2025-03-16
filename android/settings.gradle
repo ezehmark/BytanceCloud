@@ -1,3 +1,4 @@
+gradle.ext['org.gradle.toolchains.foojay-resolver-convention'] = null
 pluginManagement {
     repositories {
         gradlePluginPortal()
