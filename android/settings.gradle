@@ -10,6 +10,11 @@ pluginManagement {
 
 // ✅ Ensure dependencyResolutionManagement comes after pluginManagement
 dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
     versionCatalogs {
         reactAndroidLibs {
             from(files(new File(resolveNodePackage('react-native'), "../gradle/libs.versions.toml")))
@@ -17,12 +22,23 @@ dependencyResolutionManagement {
     }
 }
 
-// ✅ Move plugins inside buildscript to avoid Gradle errors
+// ✅ Add repositories inside buildscript to fix missing dependencies
 buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
     dependencies {
         classpath("com.android.tools.build:gradle:8.2.0")
         classpath("com.facebook.react:react-native-gradle-plugin")
     }
+}
+
+// ✅ Function to resolve Node.js packages
+def resolveNodePackage(packageName) {
+    def result = ["node", "--print", "require.resolve('${packageName}/package.json')"].execute()
+    result.waitFor()
+    return new File(result.text.trim())
 }
 
 // ✅ Apply React Native settings correctly
@@ -42,13 +58,6 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
         ].toList()
         ex.autolinkLibrariesFromCommand(command)
     }
-}
-
-// ✅ Move function definitions outside restricted areas
-def resolveNodePackage(packageName) {
-    def result = ["node", "--print", "require.resolve('${packageName}/package.json')"].execute()
-    result.waitFor()
-    return new File(result.text.trim())
 }
 
 // ✅ Apply Expo modules and autolinking
