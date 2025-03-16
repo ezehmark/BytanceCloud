@@ -1,3 +1,4 @@
+// Ensure pluginManagement is the FIRST block
 pluginManagement {
     repositories {
         gradlePluginPortal()
@@ -7,6 +8,7 @@ pluginManagement {
     }
 }
 
+// Ensure dependencyResolutionManagement comes after pluginManagement
 dependencyResolutionManagement {
     versionCatalogs {
         reactAndroidLibs {
@@ -15,23 +17,19 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = 'myRNApp'
-
-include ':app'
-includeBuild(resolveNodePackage('@react-native/gradle-plugin').getParentFile())
-
-// Move this to the correct position
+// Now define plugins at the correct position
 plugins {
-    id("com.facebook.react.settings") 
+    id("com.facebook.react.settings")
 }
 
-// Function to safely resolve Node.js packages
+// Function to resolve Node.js packages
 def resolveNodePackage(packageName) {
     def result = ["node", "--print", "require.resolve('${packageName}/package.json')"].execute()
     result.waitFor()
     return new File(result.text.trim())
-} 
+}
 
+// Apply React Native settings
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
     if (System.getenv('EXPO_USE_COMMUNITY_AUTOLINKING') == '1') {
         ex.autolinkLibrariesFromCommand()
@@ -53,3 +51,8 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
 // Apply Expo modules and autolinking
 apply from: new File(resolveNodePackage('expo'), "../scripts/autolinking.gradle")
 useExpoModules()
+
+rootProject.name = 'myRNApp'
+
+include ':app'
+includeBuild(resolveNodePackage('@react-native/gradle-plugin').getParentFile())
