@@ -9,7 +9,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.facebook.react") version "0.76.0" // React Native Gradle Plugin
+    id("com.facebook.react.settings") // ✅ Removed version
 }
 
 dependencyResolutionManagement {
