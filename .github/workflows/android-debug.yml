@@ -26,7 +26,7 @@ jobs:
       - name: Set Up JDK (Fix JAVA_HOME Issue)
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'  # Alternative: 'zulu' or 'corretto'
+          distribution: 'temurin'
           java-version: '17'
 
       - name: Force Java 17 for Gradle
@@ -38,6 +38,9 @@ jobs:
         run: |
           echo "JAVA_HOME is set to: $JAVA_HOME"
           java -version
+
+      - name: Generate Autolinking Config
+        run: npx expo prebuild --clean || npx react-native autolink
 
       - name: Cache Gradle Files
         uses: actions/cache@v3
@@ -54,9 +57,6 @@ jobs:
 
       - name: Ensure Assets Directory Exists
         run: mkdir -p android/app/src/main/assets
-
-      - name: Prebuild Expo (if needed)
-        run: npx expo prebuild || echo "Skipping prebuild, already ejected."
 
       - name: Clean and Build Debug APK
         run: |
