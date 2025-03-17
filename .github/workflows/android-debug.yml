@@ -1,5 +1,4 @@
-name: Android Debug Build
-
+name: Android Debug Build                                                                            
 on: [push]
 
 jobs:
@@ -18,7 +17,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install
-          npx expo install expo-blur expo-linear-gradient
+          npx expo install expo-blur expo-linear-gradient                                            
 
       - name: Set up Java & Android SDK
         uses: android-actions/setup-android@v3
@@ -38,6 +37,10 @@ jobs:
         run: |
           echo "JAVA_HOME is set to: $JAVA_HOME"
           java -version
+
+      - name: Force Specific Gradle Version
+        run: |
+          echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.3-all.zip" > android/gradle/wrapper/gradle-wrapper.properties
 
       - name: Generate Autolinking Config
         run: npx expo prebuild --clean || npx react-native autolink
