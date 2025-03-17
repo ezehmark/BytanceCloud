@@ -26,27 +26,18 @@ jobs:
       - name: Set Up JDK (Fix JAVA_HOME Issue)
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: '11'  # Change to 17 if needed
+          distribution: 'temurin'  # Alternative: 'zulu' or 'corretto'
+          java-version: '17'
+
+      - name: Force Java 17 for Gradle
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
+          echo "PATH=$JAVA_HOME_17_X64/bin:$PATH" >> $GITHUB_ENV
 
       - name: Verify Java Installation
         run: |
           echo "JAVA_HOME is set to: $JAVA_HOME"
           java -version
-
-      - name: Ensure Gradle Wrapper Exists
-        run: |
-          cd android
-          ./gradlew --version || ./gradlew wrapper
-
-      - name: Grant Execute Permission for Gradlew
-        run: chmod +x android/gradlew
-
-      - name: Ensure Assets Directory Exists
-        run: mkdir -p android/app/src/main/assets
-
-      - name: Generate Autolinking File
-        run: npx expo prebuild || echo "Skipping prebuild, already ejected."
 
       - name: Cache Gradle Files
         uses: actions/cache@v3
@@ -58,11 +49,20 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x android/gradlew
+
+      - name: Ensure Assets Directory Exists
+        run: mkdir -p android/app/src/main/assets
+
+      - name: Prebuild Expo (if needed)
+        run: npx expo prebuild || echo "Skipping prebuild, already ejected."
+
       - name: Clean and Build Debug APK
         run: |
           cd android
           ./gradlew clean
-          ./gradlew assembleDebug --no-daemon --stacktrace --info
+          ./gradlew assembleDebug --stacktrace --info
 
       - name: List APK files
         run: ls -R android/app/build/outputs/apk/
