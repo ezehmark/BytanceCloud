@@ -1,0 +1,103 @@
+name: Build Debug APK
+
+on:
+  push:
+    branches:
+      - main  # Change to your branch if needed
+
+jobs:
+  build:
+    name: Build Debug APK
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout Repository with full clone
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Ensures a full clone 
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20  # Use LTS version
+          cache: 'npm'  # Ensure npm caching is used
+
+      # Step 3: Clean old dependencies and install fresh ones
+      - name: Cleanup & Install Dependencies
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install
+
+      # Step 4: Install Expo CLI
+      - name: Install Expo CLI
+        run: npm install -g expo-cli
+
+      # Step 5: Ensure metro.config.js is correctly set up
+      - name: Setup Metro Config
+        run: |
+          echo "Ensuring metro.config.js is set correctly..."
+          cat <<EOT > metro.config.js
+          const { getDefaultConfig } = require('@react-native/metro-config');
+          module.exports = getDefaultConfig(__dirname);
+          EOT
+
+      # Step 6: Ensure assets directory exists
+      - name: Ensure Assets Directory Exists
+        run: mkdir -p android/app/src/main/assets
+
+      # Step 7: Cache Metro & Gradle for faster builds
+      - name: Cache Metro & Gradle
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.metro-cache
+          key: ${{ runner.os }}-gradle-metro-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-metro-
+
+      # Step 8: Clear Metro and Gradle Cache (if needed)
+      - name: Clear Metro and Gradle Cache
+        run: |
+          rm -rf ~/.metro-cache
+          rm -rf ~/.gradle/caches
+
+      # Step 9: Bundle React Native JavaScript
+      - name: Bundle React Native JavaScript
+        run: |
+          npx react-native bundle --platform android --dev false \
+          --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle \
+          --assets-dest android/app/src/main/res/
+
+      # Step 10: Debug - List res folder contents
+      - name: List res folder contents
+        run: ls -R android/app/src/main/res
+
+      # Step 11: Clean Gradle Build
+      - name: Clean Gradle Build
+        run: cd android && ./gradlew clean
+
+      # Step 12: Grant Execution Permission to Gradle
+      - name: Grant Execution Permission to Gradle
+        run: chmod +x android/gradlew
+
+      # Step 13: Build Debug APK with Gradle
+      - name: Build Debug APK with Gradle
+        run: cd android && ./gradlew assembleDebug --no-daemon --stacktrace --info
+
+      # Step 14: Ensure APK Exists
+      - name: Ensure APK Exists
+        run: |
+          echo "Checking if APK exists..."
+          ls -lah android/app/build/outputs/apk/debug/
+        continue-on-error: true
+
+      # Step 15: Upload APK as Artifact
+      - name: Upload APK as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-app
+          path: android/app/build/outputs/apk/debug/app-debug.apk

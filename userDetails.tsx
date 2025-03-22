@@ -17,11 +17,20 @@ import axios from "axios";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  useAnimatedGestureHandler,
   withTiming,
   withSequence,
   useAnimatedProps,
+  withRepeat,
   Easing,
+  runOnJS,
+  cancelAnimation,
 } from "react-native-reanimated";
+import {
+  PanGestureHandler,
+  GestureHandlerRootView,
+  State,
+} from "react-native-gesture-handler";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import NetInfo from "@react-native-community/netinfo";
@@ -49,7 +58,7 @@ const MyApp: React.FC = () => {
   const [notifyMsg, setNotifyMsg] = useState("");
 
   const dropDownChanger = () => {
-	  setBackendActive(true);
+    setBackendActive(true);
     notifyBoxTop.value = withSequence(
       withTiming(40, { duration: 500 }),
       withTiming(40, { duration: 1200 }),
@@ -105,6 +114,11 @@ const MyApp: React.FC = () => {
   const [borderCheck, setBorderCheck] = useState(false);
 
   const [people, setPeople] = useState([]);
+
+  const myPeople = people.map((peopleItem, index) => ({
+    id: index.toString(),
+    ...peopleItem,
+  }));
   const [name, setName] = useState("");
 
   const [focused, setFocused] = useState(false);
@@ -157,9 +171,6 @@ const MyApp: React.FC = () => {
     await axios
       .get(`https://mybackend-oftz.onrender.com/api/userDetails/${name}?`)
       .then((response) => {
-        console.log(response.data); // Debugging log
-        // Adjust based on actual response data structure
-        setPeople(response.data);
         setUserDetails(
           `${response.data.name} is now loaded from the best backend. He is ${response.data.age} years old.`,
         );
@@ -167,8 +178,6 @@ const MyApp: React.FC = () => {
       .catch((error) => {
         if (error.response && error.response.status === 404) {
           setUserDetails(error.response.data.message);
-        } else {
-          (error) => console.error(error);
         }
       })
       .finally(() => {
@@ -176,9 +185,32 @@ const MyApp: React.FC = () => {
           setLoading(false);
           setFetch(false);
         }, 2000);
-        setVisible(false);
+        setVisible(true);
       });
   };
+
+  const searchClick=()=>{
+  handleFetch()}
+
+  const [selected, setSelected] = useState<string[]>([]);
+  const isDragging = useSharedValue(false);
+
+  const scrollDistance = useSharedValue(0);
+  const ListAnim = useAnimatedStyle(() => {
+    return { transform: [{ translateX: scrollDistance.value }] };
+  });
+  const triggerScroll = () => {
+    scrollDistance.value = withRepeat(
+      withTiming(-2500, { duration: 15000, easing: Easing.linear }),-1,false)
+  };
+
+  useEffect(() => {
+    if (myPeople.length > 0 || selected) {
+      setTimeout(() => {
+       runOnJS(triggerScroll)();
+      }, 4000);
+    }
+  }, [myPeople,selected]);
 
   const handlePost = async () => {
     setLoading(true);
@@ -247,13 +279,14 @@ const MyApp: React.FC = () => {
                 : `Dear ${user.split("@")[0]},\nThe best tech hub is here! At BytanceTech, you get your web/app development done by experienced and professional developers. Reach out to us today for projects like static and dynamic websites, apps and web apps, Search Engine Optimizations(SEO), cybersecurity, productive and uptime robots to fast-track social media engagements, and many more in-demand services\nYou have this rare privilege to discuss with the team-lead:\nMessage Engnr. Mark Ezeh on WhatsApp⤵️\n		 https://wa.me/2349036202766`,
             })
 
-            .then((response) => setUserDetails(response.data.message))
+            .then((response) => {setUserDetails(response.data.message);if(response.status === 200){
+		    setNotifyMsg(response.data.msg);dropDownChanger()}
+		    else{setNotifyMsg("Email failed to send");dropDownChanger()}
+	    })
             .catch((error) => setUserDetails(error.response.data.message))
-            .finally(() => {setMailing(false);
-		     setNotifyMsg("Email Sent!");
-		     dropDownChanger();
-	    }
-		    ),
+            .finally(() => {
+              setMailing(false);
+            }),
       ),
     );
   };
@@ -286,14 +319,41 @@ const MyApp: React.FC = () => {
 
   return (
     <LinearGradient
-      colors={["#2e4a5f", "#2e4a5f", "#00d4d4","#00d4d4", "#2e4a5f", "#2e4a5f"]}
+      colors={[
+        "#2e4a5f",
+        "#2e4a5f",
+        "#00d4d4",
+        "#00d4d4",
+        "#2e4a5f",
+        "#2e4a5f",
+      ]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.outer}
     >
-    <Animated.View                                                          style={[                                                                {                                                                       height: 30,                                                           position: "absolute",                                                 borderRadius: 10,                                                     width: 200,                                                           top: -40,                                                             backgroundColor: "#feb819",                                           opacity: backendActive ? 1 : 0,                                       alignItems: "center",                                                 zIndex: 160,                                                          justifyContent: "center",                                           },                                                                    backendActive && notifyBoxAnim,                                     ]}                                                                  >                                                                       <Text                                                                   style={{ color: "#2e4a5f", position: "absolute", fontSize: 12 }}                                                                          >{notifyMsg}</Text>                                                             </Animated.View>
+      <Animated.View
+        style={[
+          {
+            height: 30,
+            position: "absolute",
+            borderRadius: 10,
+            width: 200,
+            top: -40,
+            backgroundColor: "#feb819",
+            opacity: backendActive ? 1 : 0,
+            alignItems: "center",
+            zIndex: 160,
+            justifyContent: "center",
+          },
+          backendActive && notifyBoxAnim,
+        ]}
+      >
+        {" "}
+        <Text style={{ color: "#2e4a5f", position: "absolute", fontSize: 12 }}>
+          {notifyMsg}
+        </Text>{" "}
+      </Animated.View>
       <ScrollView style={{ height: "100%", width: "100%", paddingBottom: 20 }}>
-
         <View
           style={{
             position: "absolute",
@@ -357,6 +417,7 @@ const MyApp: React.FC = () => {
           ]}
         >
           <TouchableOpacity
+            disabled={mailing}
             onPress={() => {
               sendMail();
               handleConnection();
@@ -409,7 +470,7 @@ const MyApp: React.FC = () => {
                 flex: 1,
               }}
             >
-              <Text style={{ textWrap:"nowrap",color: "black" }}>
+              <Text style={{ textWrap: "nowrap", color: "black" }}>
                 {isfetch ? "Loading..." : "Fetch Now"}
               </Text>
             </TouchableOpacity>{" "}
@@ -459,7 +520,10 @@ const MyApp: React.FC = () => {
           )}
           <Animated.View style={[styles.uploadBtn, appearAnim]}>
             <TouchableOpacity
-              onPress={handlePost}
+              onPress={() => {
+                handlePost();
+                triggerScroll();
+              }}
               disabled={loading}
               style={{
                 position: "absolute",
@@ -493,59 +557,98 @@ const MyApp: React.FC = () => {
                 end={{ x: 0, y: 1 }}
                 style={{
                   bottom: 300,
-                  borderRadius: 20,
+                  borderRadius: 0,
                   zIndex: 150,
                   position: "absolute",
                   height: 50,
-                  width: 340,
+                  width: "100%",
                 }}
                 pointerEvents={"none"}
-              >
-                <View
-                  style={{
-                    backgroundColor: "transparent",
-                    position: "absolute",
-                  }}
-                />
-              </LinearGradient>
+              ></LinearGradient>
 
-              <View
-                style={{
-                  bottom: 300,
-                  borderRadius: 20,
-                  zIndex: 100,
-                  position: "absolute",
-                  height: 50,
-                  width: 320,
-                }}
+              <Animated.View
+                style={[
+                  {
+                    bottom: 300,
+		    height:50,
+                    borderRadius: 20,
+                    zIndex: 100,
+                    position: "absolute",
+                    alignSelf:"flex-start",
+		    flexDirection:"row",
+		    alignItems:"center",
+		    justifyContent:"center",
+		    alignItems:"center",
+		    
+                  },
+                  ListAnim,
+                ]}
               >
                 <FlatList
                   horizontal={true}
                   showsHorizontalScrollIndicator={true}
-                  data={people}
-                  keyExtractor={(item, index) => index.toString()}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      onPress={() => setName(item.name)}
-                      style={{
-                        height: 40,
-                        width: 100,
-                        color: "blue",
-                        borderRadius: 15,
-                        justifyContent: "center",
-                        margin: 5,
-                        backgroundColor: "#4b9490",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Text style={{ color: "#black" }}>{item.name}</Text>
-                      <Text style={{ color: "#ccc", fontSize: 10 }}>
-                        Age: {item.age}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
+                  data={myPeople}
+		  extraData={selected}
+                  keyExtractor={(item) => item.id}
+                  renderItem={({ item }) => {
+                    const isSelected = selected.includes(item.id);
+		    const pressSearch =()=>{
+		    setName(item.name);
+		    setTimeout(()=>{
+		    handleFetch(item.name)},1000)}
+
+                    return (
+                      <View
+                        style={{
+                          height: 40,
+                          width:100,
+                          shadowOffset: { width: 0, height: 2 },
+			  margin:5, 
+                          marginBottom:isSelected? 5:0,
+                          shadowColor: "rgba(0,0,0,0.3)",
+                          elevation: 4,
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
+                        <TouchableOpacity
+                          onPress={() => {
+			    pressSearch(item.name);
+                            setSelected((prev) =>
+                              prev.includes(item.id)
+                                ? prev.filter((id) => id !== item.id)
+                                : [...prev, item.id],
+                            );
+                          }}
+                          style={{
+                            height: 40,
+                            width: 100,
+                            borderRadius: isSelected?10:15,
+
+                            justifyContent: "center",
+                            backgroundColor: isSelected ? "#feb819" : "#00cdde",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Text
+                            style={{ color: isSelected ? "black" : "black" }}
+                          >
+                            {item.name}
+                          </Text>
+                          <Text
+                            style={{
+                              color: isSelected ? "#ccc" : "black",
+                              fontSize: 10,
+                            }}
+                          >
+                            {`Age: ${item.age}`}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  }}
                 />
-              </View>
+              </Animated.View>
             </>
           )}
 
