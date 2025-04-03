@@ -1,5 +1,5 @@
+```yaml
 name: Build Debug APK
-
 on:
   push:
     branches:
@@ -9,13 +9,12 @@ jobs:
   build:
     name: Build Debug APK
     runs-on: ubuntu-latest
-
     steps:
       # Step 1: Checkout Repository with full clone
       - name: Checkout Repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Ensures a full clone 
+          fetch-depth: 0  # Ensures a full clone
 
       # Step 2: Set up Node.js
       - name: Set up Node.js
@@ -68,9 +67,10 @@ jobs:
       # Step 9: Bundle React Native JavaScript
       - name: Bundle React Native JavaScript
         run: |
+          npx react-native start --reset-cache &
           npx react-native bundle --platform android --dev false \
-          --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle \
-          --assets-dest android/app/src/main/res/
+            --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle \
+            --assets-dest android/app/src/main/res/
 
       # Step 10: Debug - List res folder contents
       - name: List res folder contents
@@ -88,16 +88,23 @@ jobs:
       - name: Build Debug APK with Gradle
         run: cd android && ./gradlew assembleDebug --no-daemon --stacktrace --info
 
-      # Step 14: Ensure APK Exists
+      # Step 14: Verify Latest Commit Hash
+      - name: Verify Latest Commit Hash
+        run: |
+          echo "Latest commit hash: $(git rev-parse HEAD)"
+
+      # Step 15: Ensure APK Exists
       - name: Ensure APK Exists
         run: |
           echo "Checking if APK exists..."
           ls -lah android/app/build/outputs/apk/debug/
         continue-on-error: true
 
-      # Step 15: Upload APK as Artifact
+      # Step 16: Upload APK as Artifact
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: debug-app
           path: android/app/build/outputs/apk/debug/app-debug.apk
+```
+

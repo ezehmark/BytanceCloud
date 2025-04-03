@@ -85,7 +85,6 @@ const MyApp: React.FC = () => {
       dropDownChanger();
       setNotifyMsg(`There is a backend failure: ${error.message}`);
     } finally {
-      setBackendActive(false);
       console.log("Backend Checks Done ✅");
     }
   };
@@ -138,13 +137,13 @@ const MyApp: React.FC = () => {
     setTimeout(() => {
       myLeft.value = withSequence(
         withTiming(26, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0, { duration: 400, easing: Easing.inOut(Easing.ease) }),
+        withTiming(-26, { duration: 400, easing: Easing.inOut(Easing.ease) }),
         withTiming(10, { duration: 800, easing: Easing.in(Easing.ease) }),
       );
 
       myRight.value = withSequence(
         withTiming(26, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0, { duration: 400, easing: Easing.inOut(Easing.ease) }),
+        withTiming(-10, { duration: 400, easing: Easing.inOut(Easing.ease) }),
         withTiming(10, { duration: 800, easing: Easing.in(Easing.ease) }),
       );
 
@@ -273,11 +272,9 @@ const MyApp: React.FC = () => {
           await axios
             .post("https://mybackend-oftz.onrender.com/send-mail", {
               recipient: isEmail ? myEmail : user,
-              subject: "Web and App Technology Simplified",
-              message: isEmail
-                ? `Dear ${myEmail.split("@")[0]},\nThe best tech hub is here! At BytanceTech, you get your web/app development done by experienced and professional developers. Reach out to us today for projects like static and dynamic websites, apps and web apps, Search Engine Optimizations(SEO), cybersecurity, productive and uptime robots to fast-track social media engagements, and many more in-demand services\nYou have this rare privilege to discuss with the team-lead:\nMessage Engnr. Mark Ezeh on WhatsApp⤵️\n	 https://wa.me/2349036202766`
-                : `Dear ${user.split("@")[0]},\nThe best tech hub is here! At BytanceTech, you get your web/app development done by experienced and professional developers. Reach out to us today for projects like static and dynamic websites, apps and web apps, Search Engine Optimizations(SEO), cybersecurity, productive and uptime robots to fast-track social media engagements, and many more in-demand services\nYou have this rare privilege to discuss with the team-lead:\nMessage Engnr. Mark Ezeh on WhatsApp⤵️\n		 https://wa.me/2349036202766`,
-            })
+              subject: "We Build It For You!",
+            message:`<div style="position:absolute;paddhing:10px;height:400px;justify-content:center;width:90%;display:flex;transform:translate(-50%,-50%);top:50%;left:50%;border:2px solid #00ff00;border-radius:10px"><br><p style ="color:#00ff00;position:absolute;top:30px;text-wrap:nowrap;margin:15px;left:0px;font-weight:bold">Dear,${isEmail? myEmail.split("@")[0] : user.split("@")[0]}</p><br><br><div style="position:absolute;margin:15px;top:80px;color:#2e4a5f">We are BytanceTech, we are solid in app and web development. We build tech products that thrive on <b>speed, scalability and accessibility.</b> We major in building functioning dynamic websites and/or standalone apps for Android and iOS systems. Cyber security is paramount across all our products. <br><b>Get it done through us!</b></b></div><div style="padding:display:flex;justify-content:center;align-items:center;width:70%;height:20px"><a href=""><div style="color:green;position:absolute;bottom:40px;align-self:center;transform:translate(-50%,-50%);left:50%;width:180px;text-align:center;padding:10px;border-radius:15px;bordyer:1px solid red; background-color:#00ff00;color:white;box-shadow:2px 2px 4px rgba(0,0,0,0.4)">Contact Mark</div></a>
+    </div><footer style="position:absolute;font-size:10px;bottom:15px;color:#41756a">This email was sent from a secure backend - built by Mark</footer></div>`})
 
             .then((response) => {setUserDetails(response.data.message);if(response.status === 200){
 		    setNotifyMsg(response.data.msg);dropDownChanger()}
@@ -790,7 +787,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: "absolute",
     borderRadius: 20,
-    top: 40,
+    top: 50,
     elevation: 0,
     shadowRadius: 5,
 
